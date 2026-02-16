@@ -39,7 +39,7 @@ class BookListViewModel(
             if(cachedBooks.isEmpty()) {
                 observeSearchQuery()
             }
-            observeFavoriteBooks()
+            observeDownloadedBooks()
         }
         .stateIn(
             viewModelScope,
@@ -67,13 +67,13 @@ class BookListViewModel(
         }
     }
 
-    private fun observeFavoriteBooks() {
+    private fun observeDownloadedBooks() {
         observeFavoriteJob?.cancel()
         observeFavoriteJob = bookRepository
-            .getFavoriteBooks()
-            .onEach { favoriteBooks ->
+            .getDownloadedBooks()
+            .onEach { downloadedBooks ->
                 _state.update { it.copy(
-                    favoriteBooks = favoriteBooks
+                    downloadedBooks = downloadedBooks
                 ) }
             }
             .launchIn(viewModelScope)

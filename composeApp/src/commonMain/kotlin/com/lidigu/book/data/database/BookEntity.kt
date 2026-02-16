@@ -7,13 +7,16 @@ import androidx.room.PrimaryKey
 data class BookEntity(
     @PrimaryKey(autoGenerate = false) val id: String,
     val title: String,
-    val description: String?,
+    val subtitle: String,
+    val authors: String,
+    val publisher: String,
+    val pages: String,
+    val year: String,
+    val rating: Double,
+    val description: String,
+    val price: String,
     val imageUrl: String,
-    val languages: List<String>,
-    val authors: List<String>,
-    val firstPublishYear: String?,
-    val ratingsAverage: Double?,
-    val ratingsCount: Int?,
-    val numPagesMedian: Int?,
-    val numEditions: Int
+    val url: String,
+    val downloadUrl: String?,
+    val localPath: String? = null
 )

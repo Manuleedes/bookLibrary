@@ -147,20 +147,18 @@ fun BookListItem(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                book.authors.firstOrNull()?.let { authorName ->
-                    Text(
-                        text = authorName,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                book.averageRating?.let { rating ->
+                Text(
+                    text = book.authors,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (book.rating > 0.0) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${round(rating * 10) / 10.0}",
+                            text = "${round(book.rating * 10) / 10.0}",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Icon(

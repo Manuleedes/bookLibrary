@@ -1,26 +1,26 @@
 package com.lidigu.book.data.mappers
 
 import com.lidigu.book.data.database.BookEntity
+import com.lidigu.book.data.dto.BookDetailDto
 import com.lidigu.book.data.dto.SearchedBookDto
 import com.lidigu.book.domain.Book
 
 fun SearchedBookDto.toBook(): Book {
     return Book(
-        id = id.substringAfterLast("/"),
+        id = id,
         title = title,
-        imageUrl = if(coverKey != null) {
-            "https://covers.openlibrary.org/b/olid/${coverKey}-L.jpg"
-        } else {
-            "https://covers.openlibrary.org/b/id/${coverAlternativeKey}-L.jpg"
-        },
-        authors = authorNames ?: emptyList(),
-        description = null,
-        languages = languages ?: emptyList(),
-        firstPublishYear = firstPublishYear.toString(),
-        averageRating = ratingsAverage,
-        ratingCount = ratingsCount,
-        numPages = numPagesMedian,
-        numEditions = numEditions ?: 0
+        subtitle = subtitle,
+        authors = "Unknown",
+        publisher = "Unknown",
+        pages = "Unknown",
+        year = "Unknown",
+        rating = 0.0,
+        description = "Unknown",
+        price = price,
+        imageUrl = image,
+        url = url,
+        downloadUrl = null,
+        localPath = null
     )
 }
 
@@ -28,15 +28,18 @@ fun Book.toBookEntity(): BookEntity {
     return BookEntity(
         id = id,
         title = title,
-        description = description,
-        imageUrl = imageUrl,
-        languages = languages,
+        subtitle = subtitle,
         authors = authors,
-        firstPublishYear = firstPublishYear,
-        ratingsAverage = averageRating,
-        ratingsCount = ratingCount,
-        numPagesMedian = numPages,
-        numEditions = numEditions
+        publisher = publisher,
+        pages = pages,
+        year = year,
+        rating = rating,
+        description = description,
+        price = price,
+        imageUrl = imageUrl,
+        url = url,
+        downloadUrl = downloadUrl,
+        localPath = localPath
     )
 }
 
@@ -44,14 +47,35 @@ fun BookEntity.toBook(): Book {
     return Book(
         id = id,
         title = title,
-        description = description,
-        imageUrl = imageUrl,
-        languages = languages,
+        subtitle = subtitle,
         authors = authors,
-        firstPublishYear = firstPublishYear,
-        averageRating = ratingsAverage,
-        ratingCount = ratingsCount,
-        numPages = numPagesMedian,
-        numEditions = numEditions
+        publisher = publisher,
+        pages = pages,
+        year = year,
+        rating = rating,
+        description = description,
+        price = price,
+        imageUrl = imageUrl,
+        url = url,
+        downloadUrl = downloadUrl,
+        localPath = localPath
+    )
+}
+fun BookDetailDto.toBook(): Book {
+    return Book(
+        id = isbn13,
+        title = title,
+        subtitle = subtitle,
+        authors = authors,
+        publisher = publisher,
+        pages = pages,
+        year = year,
+        rating = rating.toDoubleOrNull() ?: 0.0,
+        description = desc,
+        price = price,
+        imageUrl = image,
+        url = url,
+        downloadUrl = pdf?.values?.firstOrNull(),
+        localPath = null
     )
 }

@@ -1,6 +1,6 @@
 package com.lidigu.book.data.network
 
-import com.lidigu.book.data.dto.BookWorkDto
+import com.lidigu.book.data.dto.BookDetailDto
 import com.lidigu.book.data.dto.SearchResponseDto
 import com.lidigu.book.domain.Book
 import com.lidigu.core.data.safeCall
@@ -10,7 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 
-private const val BASE_URL = "https://openlibrary.org"
+private const val BASE_URL = "https://api.itbook.store/1.0"
 
 class KtorRemoteBookDataSource(
     private val httpClient: HttpClient
@@ -22,20 +22,15 @@ class KtorRemoteBookDataSource(
     ): Result<SearchResponseDto, DataError.Remote> {
         return safeCall<SearchResponseDto> {
             httpClient.get(
-                urlString = "$BASE_URL/search.json"
-            ) {
-                parameter("q", query)
-                parameter("limit", resultLimit)
-                parameter("language", "eng")
-                parameter("fields", "key,title,author_name,author_key,cover_edition_key,cover_i,ratings_average,ratings_count,first_publish_year,language,number_of_pages_median,edition_count")
-            }
+                urlString = "$BASE_URL/search/$query"
+            )
         }
     }
 
-    override suspend fun getBookDetails(bookWorkId: String): Result<BookWorkDto, DataError.Remote> {
-        return safeCall<BookWorkDto> {
+    override suspend fun getBookDetails(bookWorkId: String): Result<BookDetailDto, DataError.Remote> {
+        return safeCall<BookDetailDto> {
             httpClient.get(
-                urlString = "$BASE_URL/works/$bookWorkId.json"
+                urlString = "$BASE_URL/books/$bookWorkId"
             )
         }
     }

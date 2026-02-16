@@ -14,15 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -43,21 +37,16 @@ import cmp_bookpedia.composeapp.generated.resources.Res
 import cmp_bookpedia.composeapp.generated.resources.book_cover
 import cmp_bookpedia.composeapp.generated.resources.book_error_2
 import cmp_bookpedia.composeapp.generated.resources.go_back
-import cmp_bookpedia.composeapp.generated.resources.mark_as_favorite
-import cmp_bookpedia.composeapp.generated.resources.remove_from_favorites
 import coil3.compose.rememberAsyncImagePainter
 import com.lidigu.core.presentation.DarkBlue
 import com.lidigu.core.presentation.DesertWhite
 import com.lidigu.core.presentation.PulseAnimation
-import com.lidigu.core.presentation.SandYellow
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BlurredImageBackground(
     imageUrl: String?,
-    isFavorite: Boolean,
-    onFavoriteClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
@@ -166,33 +155,6 @@ fun BlurredImageBackground(
                                         ContentScale.Fit
                                     }
                                 )
-                                IconButton(
-                                    onClick = onFavoriteClick,
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .background(
-                                            brush = Brush.radialGradient(
-                                                colors = listOf(
-                                                    SandYellow, Color.Transparent
-                                                ),
-                                                radius = 70f
-                                            )
-                                        )
-                                ) {
-                                    Icon(
-                                        imageVector = if(isFavorite) {
-                                            Icons.Filled.Favorite
-                                        } else {
-                                            Icons.Outlined.FavoriteBorder
-                                        },
-                                        tint = Color.Red,
-                                        contentDescription = if(isFavorite) {
-                                            stringResource(Res.string.remove_from_favorites)
-                                        } else {
-                                            stringResource(Res.string.mark_as_favorite)
-                                        }
-                                    )
-                                }
                             }
                         }
                     }

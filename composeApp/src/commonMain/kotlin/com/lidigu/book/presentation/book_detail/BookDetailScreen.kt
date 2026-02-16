@@ -8,16 +8,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,13 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cmp_bookpedia.composeapp.generated.resources.Res
 import cmp_bookpedia.composeapp.generated.resources.description_unavailable
-import cmp_bookpedia.composeapp.generated.resources.languages
 import cmp_bookpedia.composeapp.generated.resources.pages
 import cmp_bookpedia.composeapp.generated.resources.rating
 import cmp_bookpedia.composeapp.generated.resources.synopsis
 import com.lidigu.book.presentation.book_detail.components.BlurredImageBackground
 import com.lidigu.book.presentation.book_detail.components.BookChip
-import com.lidigu.book.presentation.book_detail.components.ChipSize
 import com.lidigu.book.presentation.book_detail.components.TitledContent
 import com.lidigu.core.presentation.SandYellow
 import org.jetbrains.compose.resources.stringResource
@@ -70,16 +72,13 @@ private fun BookDetailScreen(
 ) {
     BlurredImageBackground(
         imageUrl = state.book?.imageUrl,
-        isFavorite = state.isFavorite,
-        onFavoriteClick = {
-            onAction(BookDetailAction.OnFavoriteClick)
-        },
         onBackClick = {
             onAction(BookDetailAction.OnBackClick)
         },
         modifier = Modifier.fillMaxSize()
     ) {
         if(state.book != null) {
+            val book = state.book
             Column(
                 modifier = Modifier
                     .widthIn(max = 700.dp)
@@ -97,7 +96,7 @@ private fun BookDetailScreen(
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    text = state.book.authors.joinToString(),
+                    text = book.authors,
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -106,13 +105,13 @@ private fun BookDetailScreen(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    state.book.averageRating?.let { rating ->
+                    if (book.rating > 0.0) {
                         TitledContent(
                             title = stringResource(Res.string.rating),
                         ) {
                             BookChip {
                                 Text(
-                                    text = "${round(rating * 10) / 10.0}"
+                                    text = "${round(book.rating * 10) / 10.0}"
                                 )
                                 Icon(
                                     imageVector = Icons.Default.Star,
@@ -122,40 +121,57 @@ private fun BookDetailScreen(
                             }
                         }
                     }
-                    state.book.numPages?.let { pageCount ->
-                        TitledContent(
-                            title = stringResource(Res.string.pages),
-                        ) {
-                            BookChip {
-                                Text(text = pageCount.toString())
-                            }
-                        }
-                    }
-                }
-                if(state.book.languages.isNotEmpty()) {
                     TitledContent(
-                        title = stringResource(Res.string.languages),
-                        modifier = Modifier
-                            .padding(vertical = 8.dp)
+                        title = stringResource(Res.string.pages),
                     ) {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.wrapContentSize(Alignment.Center)
-                        ) {
-                            state.book.languages.forEach { language ->
-                                BookChip(
-                                    size = ChipSize.SMALL,
-                                    modifier = Modifier.padding(2.dp)
-                                ) {
-                                    Text(
-                                        text = language.uppercase(),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
+                        BookChip {
+                            Text(text = book.pages)
+                        }
+                    }
+                }
+
+                if (book.downloadUrl != null) {
+                    Row(
+                        modifier = Modifier
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (state.isDownloading) {
+                            CircularProgressIndicator(
+                                progress = { state.downloadProgress },
+                                modifier = Modifier.size(32.dp),
+                            )
+                            Text(
+                                text = "${(state.downloadProgress * 100).toInt()}%",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        } else if (state.isDownloaded) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color.Green
+                            )
+                            Text(
+                                text = "Downloaded",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = { onAction(BookDetailAction.OnReadClick) }
+                            ) {
+                                Text(text = "Read")
+                            }
+                        } else {
+                            Button(
+                                onClick = { onAction(BookDetailAction.OnDownloadClick) }
+                            ) {
+                                Text(text = "Download")
                             }
                         }
                     }
                 }
+
                 Text(
                     text = stringResource(Res.string.synopsis),
                     style = MaterialTheme.typography.titleLarge,
@@ -169,23 +185,16 @@ private fun BookDetailScreen(
                 )
                 if(state.isLoading) {
                     CircularProgressIndicator()
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .weight(1f),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                    }
                 } else {
                     Text(
-                        text = if(state.book.description.isNullOrBlank()) {
+                        text = if(state.book.description.isBlank()) {
                             stringResource(Res.string.description_unavailable)
                         } else {
                             state.book.description
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Justify,
-                        color = if(state.book.description.isNullOrBlank()) {
+                        color = if(state.book.description.isBlank()) {
                             Color.Black.copy(alpha = 0.4f)
                         } else Color.Black,
                         modifier = Modifier

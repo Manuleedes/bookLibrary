@@ -22,48 +22,45 @@ class DefaultBookRepository(
         return remoteBookDataSource
             .searchBooks(query)
             .map { dto ->
-                dto.results.map { it.toBook() }
+                dto.books.map { it.toBook() }
             }
     }
 
-    override suspend fun getBookDescription(bookId: String): Result<String?, DataError> {
+    override suspend fun getBookDetails(bookId: String): Result<Book, DataError> {
         val localResult = favoriteBookDao.getFavoriteBook(bookId)
 
         return if(localResult == null) {
             remoteBookDataSource
                 .getBookDetails(bookId)
-                .map { it.description }
+                .map { it.toBook() }
         } else {
-            Result.Success(localResult.description)
+            Result.Success(localResult.toBook())
         }
     }
 
-    override fun getFavoriteBooks(): Flow<List<Book>> {
+    override fun getDownloadedBooks(): Flow<List<Book>> {
         return favoriteBookDao
             .getFavoriteBooks()
             .map { bookEntities ->
-                bookEntities.map { it.toBook() }
+                bookEntities
+                    .filter { it.localPath != null }
+                    .map { it.toBook() }
             }
     }
 
-    override fun isBookFavorite(id: String): Flow<Boolean> {
-        return favoriteBookDao
-            .getFavoriteBooks()
-            .map { bookEntities ->
-                bookEntities.any { it.id == id }
-            }
-    }
-
-    override suspend fun markAsFavorite(book: Book): EmptyResult<DataError.Local> {
+    override suspend fun markAsDownloaded(book: Book, localPath: String): EmptyResult<DataError.Local> {
         return try {
-            favoriteBookDao.upsert(book.toBookEntity())
+            favoriteBookDao.upsert(book.copy(localPath = localPath).toBookEntity())
             Result.Success(Unit)
         } catch(e: SQLiteException) {
             Result.Error(DataError.Local.DISK_FULL)
         }
     }
 
-    override suspend fun deleteFromFavorites(id: String) {
-        favoriteBookDao.deleteFavoriteBook(id)
+    override suspend fun deleteDownload(id: String) {
+        val book = favoriteBookDao.getFavoriteBook(id)
+        if (book != null) {
+            favoriteBookDao.upsert(book.copy(localPath = null))
+        }
     }
 }

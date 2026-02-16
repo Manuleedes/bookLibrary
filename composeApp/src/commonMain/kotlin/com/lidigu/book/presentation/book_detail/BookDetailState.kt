@@ -4,6 +4,9 @@ import com.lidigu.book.domain.Book
 
 data class BookDetailState(
     val isLoading: Boolean = true,
-    val isFavorite: Boolean = false,
+
+    val isDownloading: Boolean = false,
+    val downloadProgress: Float = 0f,
+    val isDownloaded: Boolean = false,
     val book: Book? = null
 )

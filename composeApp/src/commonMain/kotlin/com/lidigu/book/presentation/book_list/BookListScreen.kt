@@ -161,7 +161,7 @@ fun BookListScreen(
                         unselectedContentColor = Color.Black.copy(alpha = 0.5f)
                     ) {
                         Text(
-                            text = stringResource(Res.string.favorites),
+                            text = "Downloads", // Replace Res.string.favorites
                             modifier = Modifier
                                 .padding(vertical = 12.dp)
                         )
@@ -215,15 +215,15 @@ fun BookListScreen(
                                 }
                             }
                             1 -> {
-                                if(state.favoriteBooks.isEmpty()) {
+                                if(state.downloadedBooks.isEmpty()) {
                                     Text(
-                                        text = stringResource(Res.string.no_favorite_books),
+                                        text = "No downloaded books",
                                         textAlign = TextAlign.Center,
                                         style = MaterialTheme.typography.headlineSmall,
                                     )
                                 } else {
                                     BookList(
-                                        books = state.favoriteBooks,
+                                        books = state.downloadedBooks,
                                         onBookClick = {
                                             onAction(BookListAction.OnBookClick(it))
                                         },

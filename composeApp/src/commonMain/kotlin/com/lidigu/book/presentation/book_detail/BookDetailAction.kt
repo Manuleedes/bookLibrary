@@ -4,6 +4,8 @@ import com.lidigu.book.domain.Book
 
 sealed interface BookDetailAction {
     data object OnBackClick: BookDetailAction
-    data object OnFavoriteClick: BookDetailAction
+
     data class OnSelectedBookChange(val book: Book): BookDetailAction
+    data object OnDownloadClick: BookDetailAction
+    data object OnReadClick: BookDetailAction
 }

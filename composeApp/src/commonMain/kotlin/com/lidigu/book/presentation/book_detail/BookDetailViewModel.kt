@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.lidigu.app.Route
 import com.lidigu.book.domain.BookRepository
+import com.lidigu.book.domain.DownloadManager
+import com.lidigu.book.domain.DownloadState
+import com.lidigu.core.domain.FileOpener
 import com.lidigu.core.domain.onSuccess
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +22,8 @@ import kotlinx.coroutines.launch
 
 class BookDetailViewModel(
     private val bookRepository: BookRepository,
+    private val downloadManager: DownloadManager,
+    private val fileOpener: FileOpener,
     private val savedStateHandle: SavedStateHandle
 ): ViewModel() {
 
@@ -27,8 +32,8 @@ class BookDetailViewModel(
     private val _state = MutableStateFlow(BookDetailState())
     val state = _state
         .onStart {
-            fetchBookDescription()
-            observeFavoriteStatus()
+            fetchBookDetails()
+            checkDownloadStatus()
         }
         .stateIn(
             viewModelScope,
@@ -43,43 +48,72 @@ class BookDetailViewModel(
                     book = action.book
                 ) }
             }
-            is BookDetailAction.OnFavoriteClick -> {
-                viewModelScope.launch {
-                    if(state.value.isFavorite) {
-                        bookRepository.deleteFromFavorites(bookId)
-                    } else {
-                        state.value.book?.let { book ->
-                            bookRepository.markAsFavorite(book)
-                        }
-                    }
+
+            is BookDetailAction.OnDownloadClick -> {
+                downloadBook()
+            }
+            is BookDetailAction.OnReadClick -> {
+                val book = state.value.book ?: return
+                val fileName = "${book.title.replace(" ", "_")}.pdf"
+                downloadManager.getDownloadedFilePath(fileName)?.let { path ->
+                    fileOpener.openFile(path)
                 }
             }
             else -> Unit
         }
     }
 
-    private fun observeFavoriteStatus() {
-        bookRepository
-            .isBookFavorite(bookId)
-            .onEach { isFavorite ->
-                _state.update { it.copy(
-                    isFavorite = isFavorite
-                ) }
-            }
-            .launchIn(viewModelScope)
+    private fun checkDownloadStatus() {
+        val book = state.value.book ?: return
+        val fileName = "${book.title.replace(" ", "_")}.pdf"
+        _state.update { it.copy(
+            isDownloaded = downloadManager.isBookDownloaded(fileName)
+        ) }
     }
 
-    private fun fetchBookDescription() {
+    private fun downloadBook() {
+        val book = state.value.book ?: return
+        val downloadUrl = book.downloadUrl ?: return
+        val fileName = "${book.title.replace(" ", "_")}.pdf"
+
+        downloadManager.downloadBook(downloadUrl, fileName)
+            .onEach { downloadState ->
+                when(downloadState) {
+                    is DownloadState.Downloading -> {
+                        _state.update { it.copy(
+                            isDownloading = true,
+                            downloadProgress = downloadState.progress
+                        ) }
+                    }
+                    is DownloadState.Finished -> {
+                        _state.update { it.copy(
+                            isDownloading = false,
+                            isDownloaded = true
+                        ) }
+                        viewModelScope.launch {
+                            bookRepository.markAsDownloaded(book, downloadState.path)
+                        }
+                    }
+                    is DownloadState.Failed -> {
+                        _state.update { it.copy(
+                            isDownloading = false
+                        ) }
+                    }
+                    else -> Unit
+                }
+            }.launchIn(viewModelScope)
+    }
+
+    private fun fetchBookDetails() {
         viewModelScope.launch {
             bookRepository
-                .getBookDescription(bookId)
-                .onSuccess { description ->
+                .getBookDetails(bookId)
+                .onSuccess { book ->
                     _state.update { it.copy(
-                        book = it.book?.copy(
-                            description = description
-                        ),
+                        book = book,
                         isLoading = false
                     ) }
+                    checkDownloadStatus()
                 }
         }
     }
