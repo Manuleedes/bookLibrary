@@ -12,6 +12,10 @@ plugins {
     alias(libs.plugins.room)
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -32,10 +36,6 @@ kotlin {
     }
     
     jvm("desktop")
-
-    room {
-        schemaDirectory("$projectDir/schemas")
-    }
 
     sourceSets {
         val desktopMain by getting
