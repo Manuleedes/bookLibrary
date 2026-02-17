@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "731123576710",
+    "project_id": "booktstore-51167",
+    "storage_bucket": "booktstore-51167.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:731123576710:android:ede14ee64f16b4be4b8607",
+        "android_client_info": {
+          "package_name": "com.lidigu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtyolqYz7sz47vJpM_vLv94x4p-G5nG7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

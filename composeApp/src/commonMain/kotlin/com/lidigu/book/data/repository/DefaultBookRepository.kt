@@ -11,6 +11,9 @@ import com.lidigu.core.domain.DataError
 import com.lidigu.core.domain.EmptyResult
 import com.lidigu.core.domain.Result
 import com.lidigu.core.domain.map
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -22,7 +25,20 @@ class DefaultBookRepository(
         return remoteBookDataSource
             .searchBooks(query)
             .map { dto ->
-                dto.books.map { it.toBook() }
+                coroutineScope {
+                    dto.books
+                        .map { searchedBook ->
+                            async { remoteBookDataSource.getBookDetails(searchedBook.id) }
+                        }
+                        .awaitAll()
+                        .mapNotNull { result ->
+                            when(result) {
+                                is Result.Success -> result.data.toBook()
+                                is Result.Error -> null
+                            }
+                        }
+                        .filter { it.downloadUrl != null }
+                }
             }
     }
 

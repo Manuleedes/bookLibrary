@@ -22,4 +22,6 @@
     <string name="error_too_many_requests">Your quota seems to be exceeded.</string>
     <string name="error_serialization">Couldn't parse data.</string>
     <string name="download">Downloads</string>
+    <string name="no_download">No downloaded books.. </string>
+
 </resources>

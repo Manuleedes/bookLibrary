@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cmp_bookpedia.composeapp.generated.resources.Res
 import cmp_bookpedia.composeapp.generated.resources.download
 import cmp_bookpedia.composeapp.generated.resources.favorites
+import cmp_bookpedia.composeapp.generated.resources.no_download
 import cmp_bookpedia.composeapp.generated.resources.no_favorite_books
 import cmp_bookpedia.composeapp.generated.resources.no_search_results
 import cmp_bookpedia.composeapp.generated.resources.search_results
@@ -218,7 +219,7 @@ fun BookListScreen(
                             1 -> {
                                 if(state.downloadedBooks.isEmpty()) {
                                     Text(
-                                        text = "No downloaded books",
+                                        text = stringResource(Res.string.no_download),
                                         textAlign = TextAlign.Center,
                                         style = MaterialTheme.typography.headlineSmall,
                                     )
