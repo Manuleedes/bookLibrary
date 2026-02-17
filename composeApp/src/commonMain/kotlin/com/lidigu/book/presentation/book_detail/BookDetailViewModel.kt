@@ -10,6 +10,7 @@ import com.lidigu.book.domain.DownloadManager
 import com.lidigu.book.domain.DownloadState
 import com.lidigu.core.domain.FileOpener
 import com.lidigu.core.domain.onSuccess
+import com.lidigu.core.domain.toSanitizedPdfFileName
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -54,7 +55,7 @@ class BookDetailViewModel(
             }
             is BookDetailAction.OnReadClick -> {
                 val book = state.value.book ?: return
-                val fileName = "${book.title.replace(" ", "_")}.pdf"
+                val fileName = book.title.toSanitizedPdfFileName()
                 downloadManager.getDownloadedFilePath(fileName)?.let { path ->
                     fileOpener.openFile(path)
                 }
@@ -65,7 +66,7 @@ class BookDetailViewModel(
 
     private fun checkDownloadStatus() {
         val book = state.value.book ?: return
-        val fileName = "${book.title.replace(" ", "_")}.pdf"
+        val fileName = book.title.toSanitizedPdfFileName()
         _state.update { it.copy(
             isDownloaded = downloadManager.isBookDownloaded(fileName)
         ) }
@@ -74,7 +75,7 @@ class BookDetailViewModel(
     private fun downloadBook() {
         val book = state.value.book ?: return
         val downloadUrl = book.downloadUrl ?: return
-        val fileName = "${book.title.replace(" ", "_")}.pdf"
+        val fileName = book.title.toSanitizedPdfFileName()
 
         downloadManager.downloadBook(downloadUrl, fileName)
             .onEach { downloadState ->

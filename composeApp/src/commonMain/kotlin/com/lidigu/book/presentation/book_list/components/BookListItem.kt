@@ -76,28 +76,33 @@ fun BookListItem(
                     .height(100.dp),
                 contentAlignment = Alignment.Center
             ) {
-                var imageLoadResult by remember {
-                    mutableStateOf<Result<Painter>?>(null)
+                var imageLoadResult by remember(book.imageUrl) {
+                    mutableStateOf<Result<Painter>?>(if (book.imageUrl == null) {
+                        Result.failure(Exception("No image URL provided"))
+                    } else null)
                 }
-                val painter = rememberAsyncImagePainter(
-                    model = book.imageUrl,
-                    onSuccess = {
-                        imageLoadResult =
-                            if (it.painter.intrinsicSize.width > 1 && it.painter.intrinsicSize.height > 1) {
-                                Result.success(it.painter)
-                            } else {
-                                Result.failure(Exception("Invalid image size"))
-                            }
-                    },
-                    onError = {
-                        it.result.throwable.printStackTrace()
-                        imageLoadResult = Result.failure(it.result.throwable)
-                    }
-                )
+                val painter = if (book.imageUrl != null) {
+                    rememberAsyncImagePainter(
+                        model = book.imageUrl,
+                        onSuccess = {
+                            imageLoadResult =
+                                if (it.painter.intrinsicSize.width > 1 && it.painter.intrinsicSize.height > 1) {
+                                    Result.success(it.painter)
+                                } else {
+                                    Result.failure(Exception("Invalid image size"))
+                                }
+                        },
+                        onError = {
+                            it.result.throwable.printStackTrace()
+                            imageLoadResult = Result.failure(it.result.throwable)
+                        }
+                    )
+                } else {
+                    null
+                }
 
-                val painterState by painter.state.collectAsStateWithLifecycle()
                 val transition by animateFloatAsState(
-                    targetValue = if(painterState is AsyncImagePainter.State.Success) {
+                    targetValue = if (painter?.state?.collectAsStateWithLifecycle()?.value is AsyncImagePainter.State.Success) {
                         1f
                     } else {
                         0f
@@ -111,11 +116,11 @@ fun BookListItem(
                     )
                     else -> {
                         Image(
-                            painter = if (result.isSuccess) painter else {
+                            painter = if (result.isSuccess && painter != null) painter else {
                                 painterResource(Res.drawable.book_error_2)
                             },
                             contentDescription = book.title,
-                            contentScale = if (result.isSuccess) {
+                            contentScale = if (result.isSuccess && painter != null) {
                                 ContentScale.Crop
                             } else {
                                 ContentScale.Fit

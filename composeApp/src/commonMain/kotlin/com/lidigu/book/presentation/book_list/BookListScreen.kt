@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cmp_bookpedia.composeapp.generated.resources.Res
+import cmp_bookpedia.composeapp.generated.resources.download
 import cmp_bookpedia.composeapp.generated.resources.favorites
 import cmp_bookpedia.composeapp.generated.resources.no_favorite_books
 import cmp_bookpedia.composeapp.generated.resources.no_search_results
@@ -161,7 +162,7 @@ fun BookListScreen(
                         unselectedContentColor = Color.Black.copy(alpha = 0.5f)
                     ) {
                         Text(
-                            text = "Downloads", // Replace Res.string.favorites
+                            text = stringResource(Res.string.download),
                             modifier = Modifier
                                 .padding(vertical = 12.dp)
                         )

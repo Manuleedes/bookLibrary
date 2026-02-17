@@ -51,23 +51,30 @@ fun BlurredImageBackground(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    var imageLoadResult by remember {
-        mutableStateOf<Result<Painter>?>(null)
+    var imageLoadResult by remember(imageUrl) {
+        mutableStateOf<Result<Painter>?>(if (imageUrl == null) {
+            Result.failure(Exception("No image URL provided"))
+        } else null)
     }
-    val painter = rememberAsyncImagePainter(
-        model = imageUrl,
-        onSuccess = {
-            val size = it.painter.intrinsicSize
-            imageLoadResult = if(size.width > 1 && size.height > 1) {
-                Result.success(it.painter)
-            } else {
-                Result.failure(Exception("Invalid image dimensions"))
+    val painter = if (imageUrl != null) {
+        rememberAsyncImagePainter(
+            model = imageUrl,
+            onSuccess = {
+                val size = it.painter.intrinsicSize
+                imageLoadResult = if (size.width > 1 && size.height > 1) {
+                    Result.success(it.painter)
+                } else {
+                    Result.failure(Exception("Invalid image dimensions"))
+                }
+            },
+            onError = {
+                it.result.throwable.printStackTrace()
+                imageLoadResult = Result.failure(it.result.throwable)
             }
-        },
-        onError = {
-            it.result.throwable.printStackTrace()
-        }
-    )
+        )
+    } else {
+        null
+    }
 
     Box(modifier = modifier) {
         Column(
@@ -80,14 +87,16 @@ fun BlurredImageBackground(
                     .fillMaxWidth()
                     .background(DarkBlue)
             ) {
-                Image(
-                    painter = painter,
-                    contentDescription = stringResource(Res.string.book_cover),
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(20.dp)
-                )
+                painter?.let {
+                    Image(
+                        painter = it,
+                        contentDescription = stringResource(Res.string.book_cover),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(20.dp)
+                    )
+                }
             }
 
             Box(
@@ -142,14 +151,16 @@ fun BlurredImageBackground(
                         else -> {
                             Box {
                                 Image(
-                                    painter = if(result.isSuccess) painter else {
+                                    painter = if (result.isSuccess && painter != null) {
+                                        painter
+                                    } else {
                                         painterResource(Res.drawable.book_error_2)
                                     },
                                     contentDescription = stringResource(Res.string.book_cover),
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .background(Color.Transparent),
-                                    contentScale = if(result.isSuccess) {
+                                    contentScale = if (result.isSuccess && painter != null) {
                                         ContentScale.Crop
                                     } else {
                                         ContentScale.Fit
